@@ -9,9 +9,13 @@ public class InputHandler implements KeyListener {
         this.gp = gp;
     }
     public boolean upPressed, downPressed, leftPressed, rightPressed;
+    public boolean jumpPressed;
     public boolean sprintPressed;
     public boolean vignetteToggled = true;
     public boolean hudToggled = false;
+
+    public boolean cameraPanUp, cameraPanDown, cameraPanLeft, cameraPanRight;
+    public boolean freeCamera, fixedCamera, playerCamera;
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -37,6 +41,38 @@ public class InputHandler implements KeyListener {
         }
         if (code == KeyEvent.VK_SHIFT) { //sprint
             sprintPressed = true;
+        }
+
+        if (code == KeyEvent.VK_SPACE) {
+            jumpPressed = true;
+        }
+
+        if (code == KeyEvent.VK_UP) {
+            cameraPanUp = true;
+        }
+        if (code == KeyEvent.VK_DOWN) {
+            cameraPanDown = true;
+        }
+        if (code == KeyEvent.VK_LEFT) {
+            cameraPanLeft = true;
+        }
+        if (code == KeyEvent.VK_RIGHT) {
+            cameraPanRight = true;
+        }
+
+
+
+        if (code == KeyEvent.VK_F2) {
+            if (freeCamera) {
+                freeCamera = false;
+                fixedCamera = true;
+            } else if (fixedCamera) {
+                fixedCamera = false;
+                playerCamera = true;
+            } else if (playerCamera) {
+                playerCamera = false;
+                freeCamera = true;
+            }
         }
 
         if (code == KeyEvent.VK_F1) {
@@ -69,6 +105,23 @@ public class InputHandler implements KeyListener {
         }
         if (code == KeyEvent.VK_SHIFT) { //sprint
             sprintPressed = false;
+        }
+
+        if (code == KeyEvent.VK_SPACE) {
+            jumpPressed = false;
+        }
+
+        if (code == KeyEvent.VK_UP) {
+            cameraPanUp = false;
+        }
+        if (code == KeyEvent.VK_DOWN) {
+            cameraPanDown = false;
+        }
+        if (code == KeyEvent.VK_LEFT) {
+            cameraPanLeft = false;
+        }
+        if (code == KeyEvent.VK_RIGHT) {
+            cameraPanRight = false;
         }
     }
 }

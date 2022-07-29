@@ -4,13 +4,14 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Main {
     public static JFrame window;
 
     public Image getIconTexture() {
         try {
-            return ImageIO.read(getClass().getResourceAsStream("/misc/icon.png"));
+            return ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/misc/icon.png")));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,13 +43,9 @@ public class Main {
             window.setSize(gamePanel.screenWidth2, gamePanel.screenHeight2);
         }
 
-
-
         window.setLocationRelativeTo(null);
         window.setVisible(true);
 
-        //TODO (everywhere): make variable names suck less
-        //TODO (everywhere): write documentation
         gamePanel.startGameThread();
     }
 }

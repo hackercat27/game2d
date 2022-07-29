@@ -1,17 +1,15 @@
 package ca.hackercat.game2d.main;
 
 import ca.hackercat.game2d.entity.Player;
-import ca.hackercat.game2d.overlay.BigChungus;
 import ca.hackercat.game2d.overlay.HeadsUpDisplay;
 import ca.hackercat.game2d.overlay.Vignette;
 import ca.hackercat.game2d.tile.TileManager;
 import ca.hackercat.util.Audio;
+import ca.hackercat.util.ToolBox;
 
 import javax.swing.JPanel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -46,9 +44,10 @@ public class GamePanel extends JPanel implements Runnable {
 
     public InputHandler inputHandler = new InputHandler(this);
     public Player player = new Player(this, inputHandler);
-    TileManager tileManager = new TileManager(this);
+    public TileManager tileManager = new TileManager(this);
     public GameVars vars = new GameVars();
     public CollisionDetector collisionDetector = new CollisionDetector(this);
+    public ToolBox util = new ToolBox(this, vars);
     Audio music = new Audio();
     Audio sfx = new Audio();
     Vignette vignette = new Vignette(this);
@@ -86,6 +85,7 @@ public class GamePanel extends JPanel implements Runnable {
         gameThread.start();
     }
 
+    @SuppressWarnings("BusyWait")
     @Override
     public void run() {
         setupGame();
@@ -99,8 +99,6 @@ public class GamePanel extends JPanel implements Runnable {
         long lastFrameUpdateTime = System.currentTimeMillis();
 
         double framerate;
-
-        int framesRendered = 0;
 
         while(gameThread != null) {
             //calculate framerate
@@ -125,7 +123,6 @@ public class GamePanel extends JPanel implements Runnable {
             //draw the screen
             paintScreenBuffer();
             paintScreen();
-            framesRendered++;
 
             try {
                 double remainingTime = nextDrawTime - System.currentTimeMillis();
@@ -147,6 +144,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void update() {
         player.update();
+        tileManager.update();
     }
     public void paintScreenBuffer() {
         long drawStartTime;

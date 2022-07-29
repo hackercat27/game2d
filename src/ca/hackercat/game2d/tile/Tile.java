@@ -6,6 +6,4 @@ public class Tile {
 
     public BufferedImage image;
     public boolean collision = false;
-    public boolean slowTile = false;
-    public boolean waterTile = false;
 }
