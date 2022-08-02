@@ -1,6 +1,7 @@
 package ca.hackercat.game2d.tile;
 
 import ca.hackercat.game2d.main.GamePanel;
+import ca.hackercat.util.ToolBox;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -21,7 +22,7 @@ public class TileManager {
     public int cameraWorldX = 0;
     public int cameraWorldY = 0;
 
-    public int speed = 5;
+    public int speed;
 
     final int INTERPOLATION_LENGTH = 30;
 
@@ -30,41 +31,30 @@ public class TileManager {
 
         mapTilePos = new int[gp.MAX_WORLD_COL][gp.MAX_WORLD_ROW];
 
+        speed = 5 * gp.SCALE_FACTOR;
         tile = new Tile[10];
         getTextures();
         getMapData("test_map");
     }
 
     public void getTextures() {
+        setup(0, "grass", false);
+        setup(1, "dirt", true);
+        setup(2, "water", false);
+        setup(3, "dirt_path", false);
+        setup(4, "brick", true);
+        setup(5, "rock", true);
+        setup(6, "tree", true);
+        setup(7, "water_deep", true);
+    }
+
+    public void setup(int index, String imagePath, boolean collision) {
+        ToolBox util = new ToolBox();
         try {
-            tile[0] = new Tile();
-            tile[0].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/grass.png")));
-
-            tile[1] = new Tile();
-            tile[1].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/dirt.png")));
-            tile[1].collision = true;
-
-            tile[2] = new Tile();
-            tile[2].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/water.png")));
-
-            tile[3] = new Tile();
-            tile[3].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/dirt_path.png")));
-
-            tile[4] = new Tile();
-            tile[4].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/brick.png")));
-            tile[4].collision = true;
-
-            tile[5] = new Tile();
-            tile[5].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/rock.png")));
-            tile[5].collision = true;
-
-            tile[6] = new Tile();
-            tile[6].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/tree.png")));
-            tile[6].collision = true;
-
-            tile[7] = new Tile();
-            tile[7].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/water_deep.png")));
-            tile[7].collision = true;
+            tile[index] = new Tile();
+            tile[index].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/" + imagePath + ".png")));
+            tile[index].image = util.scaleImage(tile[index].image, gp.SCALED_TILE_SIZE, gp.SCALED_TILE_SIZE);
+            tile[index].collision = collision;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -110,78 +100,92 @@ public class TileManager {
     double[] cameraYInterpolation = new double[INTERPOLATION_LENGTH];
     int interpolationIndex = 0;
 
+    int cameraXVelocity;
+    int cameraYVelocity;
+    int targetCameraXVelocity;
+    int targetCameraYVelocity;
+
+    final int CAMERA_MODE_FIXED = 0;
+    final int CAMERA_MODE_PLAYER = 1;
+    final int CAMERA_MODE_FREE = 2;
+
     public void update() {
 
-        if (gp.inputHandler.fixedCamera) { //camera mode is set to "fixed"
-            if ((targetCameraWorldX == cameraWorldX) && (targetCameraWorldY == cameraWorldY)) {
+        if (gp.vars.cameraMode == CAMERA_MODE_FIXED) { //camera mode is set to "fixed"
+            updateFixedCamera();
+        } else if (gp.vars.cameraMode == CAMERA_MODE_PLAYER) {
+            updatePlayerCamera();
+        } else if (gp.vars.cameraMode == CAMERA_MODE_FREE) {
+            updateFreeCamera();
+        } else {
+            gp.vars.cameraMode = gp.vars.defaultCamera;
+        }
 
-                targetCameraWorldX = (gp.player.worldX - (gp.SCALED_TILE_SIZE / 2)) - (gp.player.worldX % gp.SCREEN_WIDTH);
-                targetCameraWorldY = (gp.player.worldY - (gp.SCALED_TILE_SIZE / 2)) - (gp.player.worldY % gp.SCREEN_HEIGHT);
+        //if the camera is pointing out of bounds, move it back to the closest in bounds area of the map
+        if (cameraWorldX < 0) { //left edge
+            cameraWorldX = 0;
+        } else if (cameraWorldX > gp.WORLD_WIDTH - gp.SCREEN_WIDTH) { //right edge
+            cameraWorldX = gp.WORLD_WIDTH - gp.SCREEN_WIDTH;
+        }
+        if (cameraWorldY < 0) { //top edge
+            cameraWorldY = 0;
+        } else if (cameraWorldY > gp.WORLD_HEIGHT - gp.SCREEN_HEIGHT) { //bottom edge
+            cameraWorldY = gp.WORLD_HEIGHT - gp.SCREEN_HEIGHT;
+        }
+    }
 
-                targetCameraWorldX += (gp.SCALED_TILE_SIZE / 2);
-                targetCameraWorldY += (gp.SCALED_TILE_SIZE / 2);
+    public void updateFixedCamera() {
+        if ((targetCameraWorldX == cameraWorldX) && (targetCameraWorldY == cameraWorldY)) {
 
+            targetCameraWorldX = (gp.player.worldX - (gp.SCALED_TILE_SIZE / 2)) - (gp.player.worldX % gp.SCREEN_WIDTH);
+            targetCameraWorldY = (gp.player.worldY - (gp.SCALED_TILE_SIZE / 2)) - (gp.player.worldY % gp.SCREEN_HEIGHT);
+
+            //targetCameraWorldX += (gp.SCALED_TILE_SIZE / 2);
+            //targetCameraWorldY += (gp.SCALED_TILE_SIZE / 2);
+
+            interpolationIndex = 0;
+            generatedInterpolation = false;
+        } else {
+            if (!generatedInterpolation) {
+                cameraXInterpolation = gp.util.cosineInterpolate(cameraWorldX, targetCameraWorldX, INTERPOLATION_LENGTH);
+                cameraYInterpolation = gp.util.cosineInterpolate(cameraWorldY, targetCameraWorldY, INTERPOLATION_LENGTH);
                 interpolationIndex = 0;
-                generatedInterpolation = false;
+                generatedInterpolation = true;
+            }
+
+            // move the camera to the interpolated coordinates (rounded, since camera coordinates are integers)
+            cameraWorldX = (int) Math.round(cameraXInterpolation[interpolationIndex]);
+            cameraWorldY = (int) Math.round(cameraYInterpolation[interpolationIndex]);
+
+            if (interpolationIndex == INTERPOLATION_LENGTH) {
+                cameraWorldY = targetCameraWorldY;
+                cameraWorldX = targetCameraWorldX;
             } else {
-
-                if (!generatedInterpolation) {
-                    cameraXInterpolation = gp.util.linearInterpolate(cameraWorldX, targetCameraWorldX, INTERPOLATION_LENGTH);
-                    cameraYInterpolation = gp.util.linearInterpolate(cameraWorldY, targetCameraWorldY, INTERPOLATION_LENGTH);
-                    interpolationIndex = 0;
-                    generatedInterpolation = true;
-                }
-                try {
-                    cameraWorldX = (int) cameraXInterpolation[interpolationIndex];
-                    cameraWorldY = (int) cameraYInterpolation[interpolationIndex];
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    e.printStackTrace();
-                    interpolationIndex = 0;
-                }
-                if (interpolationIndex == INTERPOLATION_LENGTH) {
-                    cameraWorldY = targetCameraWorldY;
-                    cameraWorldX = targetCameraWorldX;
-                } else {
-                    interpolationIndex++;
-                }
-
-            }
-
-        } else { // camera mode is not set to "fixed"
-
-            if (gp.inputHandler.playerCamera) {
-                cameraWorldX = (gp.player.worldX + (gp.SCALED_TILE_SIZE / 2)) - (gp.SCREEN_WIDTH / 2);
-                cameraWorldY = (gp.player.worldY + (gp.SCALED_TILE_SIZE / 2)) - (gp.SCREEN_HEIGHT / 2);
-            } else if (gp.inputHandler.freeCamera) {
-                if (gp.inputHandler.cameraPanUp) {
-                    cameraWorldY -= speed;
-                }
-                if (gp.inputHandler.cameraPanDown) {
-                    cameraWorldY += speed;
-                }
-                if (gp.inputHandler.cameraPanLeft) {
-                    cameraWorldX -= speed;
-                }
-                if (gp.inputHandler.cameraPanRight) {
-                    cameraWorldX += speed;
-                }
-            } else {
-                gp.inputHandler.playerCamera = true;
-            }
-
-            //if the camera is pointing out of bounds, move it back to the closest in bounds area of the map
-            if (cameraWorldX < 0) { //left edge
-                cameraWorldX = 0;
-            } else if (cameraWorldX > gp.WORLD_WIDTH - gp.SCREEN_WIDTH) { //right edge
-                cameraWorldX = gp.WORLD_WIDTH - gp.SCREEN_WIDTH;
-            }
-            if (cameraWorldY < 0) { //top edge
-                cameraWorldY = 0;
-            } else if (cameraWorldY > gp.WORLD_HEIGHT - gp.SCREEN_HEIGHT) { //bottom edge
-                cameraWorldY = gp.WORLD_HEIGHT - gp.SCREEN_HEIGHT;
+                interpolationIndex++;
             }
         }
     }
+
+    public void updatePlayerCamera() {
+        cameraWorldX = (gp.player.worldX + (gp.SCALED_TILE_SIZE / 2)) - (gp.SCREEN_WIDTH / 2);
+        cameraWorldY = (gp.player.worldY + (gp.SCALED_TILE_SIZE / 2)) - (gp.SCREEN_HEIGHT / 2);
+    }
+
+    public void updateFreeCamera() {
+        if (gp.inputHandler.cameraPanUp) {
+            cameraWorldY -= speed;
+        }
+        if (gp.inputHandler.cameraPanDown) {
+            cameraWorldY += speed;
+        }
+        if (gp.inputHandler.cameraPanLeft) {
+            cameraWorldX -= speed;
+        }
+        if (gp.inputHandler.cameraPanRight) {
+            cameraWorldX += speed;
+        }
+    }
+
     public void draw(Graphics2D g2) {
 
         int worldCol = 0;
@@ -197,7 +201,7 @@ public class TileManager {
                 worldX < cameraWorldX + gp.SCREEN_WIDTH ||
                 worldY < cameraWorldY + gp.SCREEN_HEIGHT) {
 
-                g2.drawImage(tile[mapTilePos[worldCol][worldRow]].image, worldX - cameraWorldX, worldY - cameraWorldY, gp.SCALED_TILE_SIZE, gp.SCALED_TILE_SIZE, null);
+                g2.drawImage(tile[mapTilePos[worldCol][worldRow]].image, worldX - cameraWorldX, worldY - cameraWorldY,null);
             }
             worldCol++;
             worldX = worldCol * gp.SCALED_TILE_SIZE;

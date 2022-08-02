@@ -4,23 +4,30 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class InputHandler implements KeyListener {
-    GamePanel gp;
-    public InputHandler(GamePanel gp) {
-        this.gp = gp;
-    }
     public boolean upPressed, downPressed, leftPressed, rightPressed;
     public boolean jumpPressed;
     public boolean sprintPressed;
     public boolean vignetteToggled = true;
     public boolean hudToggled = false;
-
     public boolean cameraPanUp, cameraPanDown, cameraPanLeft, cameraPanRight;
+
     public boolean freeCamera, fixedCamera, playerCamera;
+    GamePanel gp;
+
+    public InputHandler(GamePanel gp) {
+        this.gp = gp;
+    }
 
     @Override
     public void keyTyped(KeyEvent e) {
         int code = e.getKeyCode();
 
+        if (code == KeyEvent.VK_U) {
+            gp.player.health++;
+        }
+        if (code == KeyEvent.VK_J) {
+            gp.player.health--;
+        }
     }
 
     @Override
@@ -43,6 +50,14 @@ public class InputHandler implements KeyListener {
             sprintPressed = true;
         }
 
+        if (code == KeyEvent.VK_ESCAPE) { //pause
+            if (gp.currentGameState == gp.PLAY_STATE) {
+                gp.currentGameState = gp.PAUSE_STATE;
+            } else if (gp.currentGameState == gp.PAUSE_STATE) {
+                gp.currentGameState = gp.PLAY_STATE;
+            }
+        }
+
         if (code == KeyEvent.VK_SPACE) {
             jumpPressed = true;
         }
@@ -63,15 +78,12 @@ public class InputHandler implements KeyListener {
 
 
         if (code == KeyEvent.VK_F2) {
-            if (freeCamera) {
-                freeCamera = false;
-                fixedCamera = true;
-            } else if (fixedCamera) {
-                fixedCamera = false;
-                playerCamera = true;
-            } else if (playerCamera) {
-                playerCamera = false;
-                freeCamera = true;
+            if (gp.vars.cameraMode == 0) {
+                gp.vars.cameraMode = 1;
+            } else if (gp.vars.cameraMode == 1) {
+                gp.vars.cameraMode = 2;
+            } else if (gp.vars.cameraMode == 2) {
+                gp.vars.cameraMode = 0;
             }
         }
 

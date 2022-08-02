@@ -3,28 +3,18 @@ package ca.hackercat.game2d.entity;
 import ca.hackercat.game2d.main.GamePanel;
 import ca.hackercat.game2d.main.InputHandler;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Objects;
 
 public class Player extends Entity {
 
-    GamePanel gp;
     InputHandler inputHandler;
 
     public int screenX, screenY;
 
     public Player(GamePanel gp, InputHandler inputHandler) {
         super(gp);
-        this.gp = gp;
         this.inputHandler = inputHandler;
-
-        up = new BufferedImage[3];
-        down = new BufferedImage[3];
-        left = new BufferedImage[3];
-        right = new BufferedImage[3];
 
         collisionBox = new Rectangle();
         collisionBox.x = 3 * gp.SCALE_FACTOR;
@@ -39,34 +29,31 @@ public class Player extends Entity {
         getTextures();
     }
 
+    @Override
     public void setDefaultValues() {
         worldX = gp.SCALED_TILE_SIZE * 6;
         worldY = gp.SCALED_TILE_SIZE * 2;
         speed = 5;
         direction = "down";
+        health = 60;
     }
 
     public void getTextures() {
-        try {
+        up = new BufferedImage[3];
+        down = new BufferedImage[3];
+        left = new BufferedImage[2];
+        right = new BufferedImage[2];
 
-            //walking textures
-            up[0] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/up0.png")));
-            up[1] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/up1.png")));
-            up[2] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/up2.png")));
-            left[0] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/up2.png")));
-            left[1] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/up2.png")));
-            left[2] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/up2.png")));
-            down[0] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/down0.png")));
-            down[1] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/down1.png")));
-            down[2] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/down2.png")));
-            right[0] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/right0.png")));
-            right[1] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/right1.png")));
-            right[2] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/player/right2.png")));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1000);
-        }
+        up[0] = setup("/player/up0");
+        up[1] = setup("/player/up1");
+        up[2] = setup("/player/up2");
+        left[0] = setup("/player/left0");
+        left[1] = setup("/player/left1");
+        down[0] = setup("/player/down0");
+        down[1] = setup("/player/down1");
+        down[2] = setup("/player/down2");
+        right[0] = setup("/player/right0");
+        right[1] = setup("/player/right1");
     }
 
     public void update() {
@@ -128,13 +115,13 @@ public class Player extends Entity {
                 if (spriteNum == 0) image = left[0];
                 else if (spriteNum == 1) image = left[1];
                 else if (spriteNum == 2) image = left[0];
-                else if (spriteNum == 3) image = left[2];
+                else if (spriteNum == 3) image = left[1];
             }
             case "right" -> {
                 if (spriteNum == 0) image = right[0];
                 else if (spriteNum == 1) image = right[1];
                 else if (spriteNum == 2) image = right[0];
-                else if (spriteNum == 3) image = right[2];
+                else if (spriteNum == 3) image = right[1];
             }
         }
         if (flickering) {

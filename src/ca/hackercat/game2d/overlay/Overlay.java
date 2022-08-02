@@ -3,5 +3,7 @@ package ca.hackercat.game2d.overlay;
 import java.awt.image.BufferedImage;
 
 public class Overlay {
-    BufferedImage image;
+    BufferedImage[] image = new BufferedImage[10];
+
+    int x, y;
 }

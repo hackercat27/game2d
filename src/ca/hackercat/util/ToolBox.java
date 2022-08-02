@@ -10,14 +10,17 @@ import java.awt.image.BufferedImage;
 public class ToolBox {
     GamePanel gp;
     GameVars vars;
-    Gson gson = new Gson();
+    Gson gson;
 
     final String PATH = "game_vars.json";
 
     public ToolBox(GamePanel gp, GameVars vars) {
         this.gp = gp;
         this.vars = vars;
+        this.gson = new Gson();
     }
+
+    public ToolBox() {}
 
     public void setGameVars() {
 
@@ -30,7 +33,6 @@ public class ToolBox {
         BufferedImage scaledImage = new BufferedImage(width, height, original.getType());
         Graphics2D g2 = scaledImage.createGraphics();
         g2.drawImage(original, 0, 0, width, height, null);
-        g2.dispose();
 
         return scaledImage;
     }
@@ -43,11 +45,15 @@ public class ToolBox {
         return array;
     }
 
-    //doesn't work correctly (f)
-    public double[] polynomialInterpolate(double start, double end, int length) {
+    //https://www.desmos.com/calculator/gimzbap5eb
+    public double[] cosineInterpolate(double start, double end, int length) {
         double[] array = new double[length + 1];
+        int y;
+        double h;
         for (int i = 0; i <= length; i++) {
-            array[i] = 0;
+            h = (end / 2) - (start / 2);
+            y = (int) Math.round(((-h * Math.cos((Math.PI / length) * i)) + h) + start);
+            array[i] = y;
         }
         return array;
     }

@@ -71,24 +71,24 @@ public class CollisionDetector {
         if (entity.collisionAbove && !entity.collisionBelow) {
             entity.worldY = ((entity.worldY - (entity.worldY % gp.SCALED_TILE_SIZE)) + gp.SCALED_TILE_SIZE) - entity.collisionBox.y + 2;
             entity.collisionAbove = false;
-            System.out.println("Handled up collision.");
+            //System.out.println("Handled up collision.");
         }
 
         if (entity.collisionLeft && !entity.collisionRight) {
             entity.worldX = ((entity.worldX - (entity.worldX % gp.SCALED_TILE_SIZE)) + gp.SCALED_TILE_SIZE) - entity.collisionBox.x + 2;
             entity.collisionLeft = false;
-            System.out.println("Handled leftwards collision.");
+            //System.out.println("Handled leftwards collision.");
         }
         if (entity.collisionRight && !entity.collisionLeft) {
             entity.worldX = (entity.worldX - (entity.worldX % gp.SCALED_TILE_SIZE)) + (gp.SCALED_TILE_SIZE - (entity.collisionBox.x + entity.collisionBox.width)) - 2;
             entity.collisionRight = false;
-            System.out.println("Handled rightwards collision.");
+            //System.out.println("Handled rightwards collision.");
         }
 
         if (entity.collisionBelow && !entity.collisionAbove) {
             entity.worldY = (entity.worldY - (entity.worldY % gp.SCALED_TILE_SIZE)) + (gp.SCALED_TILE_SIZE - (entity.collisionBox.y + entity.collisionBox.height)) - 2;
             entity.collisionBelow = false;
-            System.out.println("Handled down collision.");
+            //System.out.println("Handled down collision.");
         }
     }
 }

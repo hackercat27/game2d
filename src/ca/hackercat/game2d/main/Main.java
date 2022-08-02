@@ -6,6 +6,12 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * @version 0.0.3-indev
+ * @author hackercat
+ * yo its the thing eyyyyyyyyyyyyyyyyyyyyyyyyy
+ * i'm probably doing this wrong probably but whatever
+ */
 public class Main {
     public static JFrame window;
 
@@ -18,7 +24,7 @@ public class Main {
         System.exit(1000);
         return null;
     }
-
+    //TODO: documentation hell (you will regret ignoring this later when you don't understand any of the code you wrote)
     public static void main(String[] args) {
 
         window = new JFrame();
@@ -46,6 +52,6 @@ public class Main {
         window.setLocationRelativeTo(null);
         window.setVisible(true);
 
-        gamePanel.startGameThread();
+        gamePanel.startLogicThread();
     }
 }

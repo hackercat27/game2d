@@ -1,8 +1,9 @@
 package ca.hackercat.game2d.main;
 
 import ca.hackercat.game2d.entity.Player;
+import ca.hackercat.game2d.entity.npc.NPC;
 import ca.hackercat.game2d.overlay.HeadsUpDisplay;
-import ca.hackercat.game2d.overlay.Vignette;
+import ca.hackercat.game2d.overlay.ScreenEffects;
 import ca.hackercat.game2d.tile.TileManager;
 import ca.hackercat.util.Audio;
 import ca.hackercat.util.ToolBox;
@@ -15,13 +16,13 @@ public class GamePanel extends JPanel implements Runnable {
 
     //screen settings
     public final int RAW_TILE_SIZE = 16;
-    public final int SCALE_FACTOR = 2;
+    public final int SCALE_FACTOR = 5;
     public final int SCALED_TILE_SIZE = RAW_TILE_SIZE * SCALE_FACTOR;
     public final int MAX_SCREEN_COL = 16;
     public final int MAX_SCREEN_ROW = 9;
 
-    public final int SCREEN_WIDTH = SCALED_TILE_SIZE * MAX_SCREEN_COL; //1280 pixels
-    public final int SCREEN_HEIGHT = SCALED_TILE_SIZE * MAX_SCREEN_ROW; //720 pixels
+    public final int SCREEN_WIDTH = SCALED_TILE_SIZE * MAX_SCREEN_COL; //512 pixels
+    public final int SCREEN_HEIGHT = SCALED_TILE_SIZE * MAX_SCREEN_ROW; //288 pixels
 
     //world settings
     public final int MAX_WORLD_COL = 100;
@@ -35,23 +36,30 @@ public class GamePanel extends JPanel implements Runnable {
 
     final int FPS = 60;
     public double currentFps;
-    public int globalCounter;
+    public int globalCounter; //counts number of ticks since startup
 
     BufferedImage tempScreen;
     Graphics2D g2;
 
-    Thread gameThread;
+    Thread logicThread;
 
     public InputHandler inputHandler = new InputHandler(this);
     public Player player = new Player(this, inputHandler);
+    public NPC[] npc = new NPC[10];
     public TileManager tileManager = new TileManager(this);
     public GameVars vars = new GameVars();
     public CollisionDetector collisionDetector = new CollisionDetector(this);
     public ToolBox util = new ToolBox(this, vars);
-    Audio music = new Audio();
-    Audio sfx = new Audio();
-    Vignette vignette = new Vignette(this);
+    AssetSetter assetSetter = new AssetSetter(this);
+    Audio music = new Audio(this);
+    Audio sfx = new Audio(this);
+    ScreenEffects screenEffects = new ScreenEffects(this);
     HeadsUpDisplay hud = new HeadsUpDisplay(this);
+
+    // GAME STATES
+    public int currentGameState;
+    public final int PLAY_STATE = 1;
+    public final int PAUSE_STATE = 2;
 
     public GamePanel() {
 
@@ -61,31 +69,40 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(inputHandler);
         this.setFocusable(true);
     }
+
     public void setupGame() {
+        currentGameState = PLAY_STATE;
+
+        playMusic(2);
+
+        assetSetter.setObject();
+        assetSetter.setNPC();
+
         tempScreen = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         g2 = (Graphics2D) tempScreen.getGraphics();
 
-        setFullScreen();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+
+        if (vars.fullscreen) {
+            setFullScreen();
+        }
+
+        screenWidth2 = Main.window.getWidth();
+        screenHeight2 = Main.window.getHeight();
     }
     public void setFullScreen() {
-        if (vars.fullscreen) {
-            // get local screen device
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            GraphicsDevice gd = ge.getDefaultScreenDevice();
-            gd.setFullScreenWindow(Main.window);
-
-            screenWidth2 = Main.window.getWidth();
-            screenHeight2 = Main.window.getHeight();
-        }
-    }
-    public void startGameThread() {
-
-
-        gameThread = new Thread(this);
-        gameThread.start();
+        // get local screen device
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();
+        gd.setFullScreenWindow(Main.window);
     }
 
-    @SuppressWarnings("BusyWait")
+    public void startLogicThread() {
+        logicThread = new Thread(this);
+        logicThread.start();
+    }
+
     @Override
     public void run() {
         setupGame();
@@ -100,7 +117,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         double framerate;
 
-        while(gameThread != null) {
+        while(logicThread != null) {
             //calculate framerate
             currentTime = System.currentTimeMillis();
             delta = currentTime - lastTime;
@@ -132,7 +149,6 @@ public class GamePanel extends JPanel implements Runnable {
                 }
 
                 Thread.sleep((long) remainingTime);
-                drawTime[5] = (long) remainingTime;
 
                 nextDrawTime += frameTime;
             } catch (InterruptedException e) {
@@ -143,36 +159,33 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
-        player.update();
-        tileManager.update();
+        music.update();
+        sfx.update();
+        if (currentGameState == PLAY_STATE) {
+            player.update();
+            tileManager.update();
+        }
+        if (currentGameState == PAUSE_STATE) {
+
+        }
     }
+
     public void paintScreenBuffer() {
-        long drawStartTime;
-        long frameStartTime = System.nanoTime();
-
-        drawStartTime = System.nanoTime();
         tileManager.draw(g2);
-        drawTime[0] = System.nanoTime() - drawStartTime;
 
-        drawStartTime = System.nanoTime();
+        for (int i = 0; i < npc.length; i++) {
+            if (npc[i] != null) npc[i].draw(g2, this);
+        }
+
         player.draw(g2);
-        drawTime[1] = System.nanoTime() - drawStartTime;
-
-        drawStartTime = System.nanoTime();
-        vignette.draw(g2);
-        drawTime[2] = System.nanoTime() - drawStartTime;
-
-        drawStartTime = System.nanoTime();
+        screenEffects.draw(g2);
         hud.draw(g2);
-        drawTime[3] = System.nanoTime() - drawStartTime;
-        drawTime[4] = System.nanoTime() - frameStartTime;
     }
     public void paintScreen() {
         Graphics g = getGraphics();
         g.drawImage(tempScreen, 0, 0, screenWidth2, screenHeight2, null);
         g.dispose();
     }
-    public long[] drawTime = new long[6];
 
     public void playMusic(int soundID) {
         music.setFile(soundID);
