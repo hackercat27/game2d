@@ -25,27 +25,15 @@ public class ScreenEffects extends Overlay {
     }
 
     public void getTextures() {
-        setup(VIGNETTE, "vignette");
-        setup(LOW_HEALTH_VIGNETTE, "low_health_vignette");
-    }
-
-    public void setup(int index, String imagePath) {
-        ToolBox util = new ToolBox();
-        try {
-            image[index] = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/overlay/" + imagePath + ".png")));
-            image[index] = util.scaleImage(image[index], gp.SCREEN_WIDTH, gp.SCREEN_HEIGHT);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1000);
-        }
+        image[VIGNETTE] = setup("overlay/vignette");
+        image[LOW_HEALTH_VIGNETTE] = setup("overlay/low_health_vignette");
     }
 
     public void draw(Graphics2D g2) {
         if (gp.inputHandler.vignetteToggled) {
-            g2.drawImage(image[VIGNETTE], 0, 0, gp.SCREEN_WIDTH, gp.SCREEN_HEIGHT, null);
+            g2.drawImage(image[VIGNETTE], 0, 0, GamePanel.SCREEN_WIDTH, GamePanel.SCREEN_HEIGHT, null);
         }
-        int offset = gp.player.health * gp.SCALE_FACTOR;
+        int offset = gp.player.health * GamePanel.SCALE_FACTOR;
         //g2.drawImage(image[LOW_HEALTH_VIGNETTE], -offset, -offset, gp.SCREEN_WIDTH + (2 * offset), gp.SCREEN_HEIGHT + (2 * offset), null);
     }
 }

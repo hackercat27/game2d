@@ -2,8 +2,10 @@ package game2d.main;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class InputHandler implements KeyListener {
+public class InputHandler implements KeyListener, MouseListener {
     public boolean upPressed, downPressed, leftPressed, rightPressed;
     public boolean jumpPressed;
     public boolean sprintPressed;
@@ -18,8 +20,13 @@ public class InputHandler implements KeyListener {
         this.gp = gp;
     }
 
+    // KEYBOARD STUFF
+
     @Override
-    public void keyTyped(KeyEvent e) {
+    public void keyTyped(KeyEvent e) {}
+
+    @Override
+    public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
 
         if (code == KeyEvent.VK_U) {
@@ -28,11 +35,10 @@ public class InputHandler implements KeyListener {
         if (code == KeyEvent.VK_J) {
             gp.player.health--;
         }
-    }
 
-    @Override
-    public void keyPressed(KeyEvent e) {
-        int code = e.getKeyCode();
+        if (code == KeyEvent.VK_SPACE) {
+
+        }
 
         if (code == KeyEvent.VK_W) { // up
             upPressed = true;
@@ -51,10 +57,10 @@ public class InputHandler implements KeyListener {
         }
 
         if (code == KeyEvent.VK_ESCAPE) { //pause
-            if (gp.currentGameState == gp.PLAY_STATE) {
-                gp.currentGameState = gp.PAUSE_STATE;
-            } else if (gp.currentGameState == gp.PAUSE_STATE) {
-                gp.currentGameState = gp.PLAY_STATE;
+            if (gp.currentGameState == GamePanel.PLAY_STATE) {
+                gp.currentGameState = GamePanel.PAUSE_STATE;
+            } else if (gp.currentGameState == GamePanel.PAUSE_STATE) {
+                gp.currentGameState = GamePanel.PLAY_STATE;
             }
         }
 
@@ -136,4 +142,26 @@ public class InputHandler implements KeyListener {
             cameraPanRight = false;
         }
     }
+
+
+    // MOUSE STUFF
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        System.out.println(e.getXOnScreen() + e.getYOnScreen() + " ");
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
 }

@@ -9,7 +9,8 @@ import java.net.URL;
 public class Audio {
 
     //sound ids
-
+    public static final int GET_ITEM = 3;
+    public static final int UNLOCK_DOOR = 4;
 
 
     Clip clip;
@@ -39,6 +40,14 @@ public class Audio {
         soundURL[2] = getClass().getResource("/sounds/music/song2.wav");
         loopStart[2] = 307197;
         loopEnd[2] = -1;
+
+        soundURL[GET_ITEM] = getClass().getResource("/sounds/sfx/get_item.wav");
+        loopStart[GET_ITEM] = 0;
+        loopEnd[GET_ITEM] = -1;
+
+        soundURL[UNLOCK_DOOR] = getClass().getResource("/sounds/sfx/unlock_door.wav");
+        loopStart[UNLOCK_DOOR] = 0;
+        loopEnd[UNLOCK_DOOR] = -1;
     }
 
     public void setFile(int soundID) {

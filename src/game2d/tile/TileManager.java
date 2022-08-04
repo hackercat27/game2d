@@ -30,9 +30,9 @@ public class TileManager {
     public TileManager(GamePanel gp) {
         this.gp = gp;
 
-        mapTilePos = new int[gp.MAX_WORLD_COL][gp.MAX_WORLD_ROW];
+        mapTilePos = new int[GamePanel.MAX_WORLD_COL][GamePanel.MAX_WORLD_ROW];
 
-        speed = 5 * gp.SCALE_FACTOR;
+        speed = 5 * GamePanel.SCALE_FACTOR;
         tile = new Tile[10];
         getTextures();
         getMapData("test_map");
@@ -47,6 +47,7 @@ public class TileManager {
         setup(5, "rock", true);
         setup(6, "tree", true);
         setup(7, "water_deep", true);
+        setup(8, "wood_planks", false);
     }
 
     public void setup(int index, String imagePath, boolean collision) {
@@ -54,7 +55,7 @@ public class TileManager {
         try {
             tile[index] = new Tile();
             tile[index].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/textures/tile/" + imagePath + ".png")));
-            tile[index].image = util.scaleImage(tile[index].image, gp.SCALED_TILE_SIZE, gp.SCALED_TILE_SIZE);
+            tile[index].image = util.scaleImage(tile[index].image, GamePanel.SCALED_TILE_SIZE, GamePanel.SCALED_TILE_SIZE);
             tile[index].collision = collision;
 
         } catch (IOException e) {
@@ -85,17 +86,17 @@ public class TileManager {
             int col = 0;
             int row = 0;
 
-            while ((col < gp.MAX_WORLD_COL) && (row < gp.MAX_WORLD_ROW)) {
+            while ((col < GamePanel.MAX_WORLD_COL) && (row < GamePanel.MAX_WORLD_ROW)) {
                 String line = br.readLine();
 
-                while (col < gp.MAX_WORLD_COL) {
+                while (col < GamePanel.MAX_WORLD_COL) {
                     String[] numbers = line.split(" ");
 
                     int num = Integer.parseInt(numbers[col]);
                     mapTilePos[col][row] = num;
                     col++;
                 }
-                if (col == gp.MAX_WORLD_COL) {
+                if (col == GamePanel.MAX_WORLD_COL) {
                     col = 0;
                     row++;
                 }
@@ -110,11 +111,6 @@ public class TileManager {
     double[] cameraXInterpolation = new double[INTERPOLATION_LENGTH];
     double[] cameraYInterpolation = new double[INTERPOLATION_LENGTH];
     int interpolationIndex = 0;
-
-    int cameraXVelocity;
-    int cameraYVelocity;
-    int targetCameraXVelocity;
-    int targetCameraYVelocity;
 
     final int CAMERA_MODE_FIXED = 0;
     final int CAMERA_MODE_PLAYER = 1;
@@ -135,21 +131,21 @@ public class TileManager {
         //if the camera is pointing out of bounds, move it back to the closest in bounds area of the map
         if (cameraWorldX < 0) { //left edge
             cameraWorldX = 0;
-        } else if (cameraWorldX > gp.WORLD_WIDTH - gp.SCREEN_WIDTH) { //right edge
-            cameraWorldX = gp.WORLD_WIDTH - gp.SCREEN_WIDTH;
+        } else if (cameraWorldX > GamePanel.WORLD_WIDTH - GamePanel.SCREEN_WIDTH) { //right edge
+            cameraWorldX = GamePanel.WORLD_WIDTH - GamePanel.SCREEN_WIDTH;
         }
         if (cameraWorldY < 0) { //top edge
             cameraWorldY = 0;
-        } else if (cameraWorldY > gp.WORLD_HEIGHT - gp.SCREEN_HEIGHT) { //bottom edge
-            cameraWorldY = gp.WORLD_HEIGHT - gp.SCREEN_HEIGHT;
+        } else if (cameraWorldY > GamePanel.WORLD_HEIGHT - GamePanel.SCREEN_HEIGHT) { //bottom edge
+            cameraWorldY = GamePanel.WORLD_HEIGHT - GamePanel.SCREEN_HEIGHT;
         }
     }
 
     public void updateFixedCamera() {
         if ((targetCameraWorldX == cameraWorldX) && (targetCameraWorldY == cameraWorldY)) {
 
-            targetCameraWorldX = (gp.player.worldX - (gp.SCALED_TILE_SIZE / 2)) - (gp.player.worldX % gp.SCREEN_WIDTH);
-            targetCameraWorldY = (gp.player.worldY - (gp.SCALED_TILE_SIZE / 2)) - (gp.player.worldY % gp.SCREEN_HEIGHT);
+            targetCameraWorldX = gp.player.worldX - (gp.player.worldX % GamePanel.SCREEN_WIDTH);
+            targetCameraWorldY = gp.player.worldY - (gp.player.worldY % GamePanel.SCREEN_HEIGHT);
 
             //targetCameraWorldX += (gp.SCALED_TILE_SIZE / 2);
             //targetCameraWorldY += (gp.SCALED_TILE_SIZE / 2);
@@ -178,8 +174,8 @@ public class TileManager {
     }
 
     public void updatePlayerCamera() {
-        cameraWorldX = (gp.player.worldX + (gp.SCALED_TILE_SIZE / 2)) - (gp.SCREEN_WIDTH / 2);
-        cameraWorldY = (gp.player.worldY + (gp.SCALED_TILE_SIZE / 2)) - (gp.SCREEN_HEIGHT / 2);
+        cameraWorldX = (gp.player.worldX + (GamePanel.SCALED_TILE_SIZE / 2)) - (GamePanel.SCREEN_WIDTH / 2);
+        cameraWorldY = (gp.player.worldY + (GamePanel.SCALED_TILE_SIZE / 2)) - (GamePanel.SCREEN_HEIGHT / 2);
     }
 
     public void updateFreeCamera() {
@@ -204,25 +200,25 @@ public class TileManager {
         int worldX = 0;
         int worldY = 0;
 
-        while (worldCol < gp.MAX_WORLD_COL && worldRow < gp.MAX_WORLD_ROW) {
+        while (worldCol < GamePanel.MAX_WORLD_COL && worldY < cameraWorldY + GamePanel.SCREEN_HEIGHT) {
 
             //if the tile we're trying to render isn't on the screen, don't render it
             if (worldX > cameraWorldX ||
                 worldY > cameraWorldY ||
-                worldX < cameraWorldX + gp.SCREEN_WIDTH ||
-                worldY < cameraWorldY + gp.SCREEN_HEIGHT) {
+                worldX < cameraWorldX + GamePanel.SCREEN_WIDTH ||
+                worldY < cameraWorldY + GamePanel.SCREEN_HEIGHT) {
 
                 g2.drawImage(tile[mapTilePos[worldCol][worldRow]].image, worldX - cameraWorldX, worldY - cameraWorldY,null);
             }
             worldCol++;
-            worldX = worldCol * gp.SCALED_TILE_SIZE;
+            worldX = worldCol * GamePanel.SCALED_TILE_SIZE;
 
-            if (worldCol == gp.MAX_WORLD_COL) {
+            if (worldCol == GamePanel.MAX_WORLD_COL) {
                 worldCol = 0;
                 worldX = worldCol;
 
                 worldRow++;
-                worldY = worldRow * gp.SCALED_TILE_SIZE;
+                worldY = worldRow * GamePanel.SCALED_TILE_SIZE;
             }
 
         }
