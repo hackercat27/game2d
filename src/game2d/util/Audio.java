@@ -9,14 +9,17 @@ import java.net.URL;
 public class Audio {
 
     //sound ids
-    public static final int GET_ITEM = 3;
-    public static final int UNLOCK_DOOR = 4;
+    public static final int GET_ITEM_UNIMPORTANT = 3;
+    public static final int GET_ITEM = 4;
+    public static final int DOOR_UNLOCK = 5;
+    public static final int DOOR_OPEN = 6;
+    public static final int DOOR_CLOSE = 7;
 
 
     Clip clip;
     URL[] soundURL = new URL[10];
-    int[] loopStart = new int[10];
-    int[] loopEnd = new int[10];
+    int[] loopStart = new int[soundURL.length];
+    int[] loopEnd = new int[soundURL.length];
 
     FloatControl floatControl;
     GamePanel gp;
@@ -31,23 +34,25 @@ public class Audio {
     }
 
     public void getSoundFiles() {
-        soundURL[0] = getClass().getResource("/sounds/music/overworld.wav");
-        loopStart[0] = 475824;
-        loopEnd[0] = -1;
-        soundURL[1] = getClass().getResource("/sounds/music/boss.wav");
-        loopStart[1] = 142500;
-        loopEnd[1] = -1;
-        soundURL[2] = getClass().getResource("/sounds/music/song2.wav");
-        loopStart[2] = 307197;
-        loopEnd[2] = -1;
 
-        soundURL[GET_ITEM] = getClass().getResource("/sounds/sfx/get_item.wav");
-        loopStart[GET_ITEM] = 0;
-        loopEnd[GET_ITEM] = -1;
+        setup(0, 383997, -1, "music/dungeon");
+        setup(1, 307197, -1, "music/song2");
 
-        soundURL[UNLOCK_DOOR] = getClass().getResource("/sounds/sfx/unlock_door.wav");
-        loopStart[UNLOCK_DOOR] = 0;
-        loopEnd[UNLOCK_DOOR] = -1;
+        setup(GET_ITEM, "sfx/get_item");
+        setup(GET_ITEM_UNIMPORTANT, "sfx/get_item_unimportant");
+        setup(DOOR_UNLOCK, "sfx/door_unlock");
+        setup(DOOR_CLOSE, "sfx/door_close");
+        setup(DOOR_OPEN, "sfx/door_open");
+    }
+
+    private void setup(int soundID, String soundPath) {
+        setup(soundID, 0, -1, soundPath);
+    }
+
+    private void setup(int soundID, int loopStart, int loopEnd, String soundPath) {
+        soundURL[soundID] = getClass().getResource("/sounds/" + soundPath + ".wav");
+        this.loopStart[soundID] = loopStart;
+        this.loopEnd[soundID] = loopEnd;
     }
 
     public void setFile(int soundID) {
@@ -56,7 +61,7 @@ public class Audio {
             clip = AudioSystem.getClip();
             clip.open(audioInputStream);
             clip.setLoopPoints(loopStart[soundID], loopEnd[soundID]);
-        } catch (UnsupportedAudioFileException | LineUnavailableException e) {
+        } catch (NullPointerException | UnsupportedAudioFileException | LineUnavailableException e) {
             e.printStackTrace();
             System.exit(1002);
         } catch (IOException e) {

@@ -1,5 +1,6 @@
 package game2d.entity;
 
+import game2d.entity.object.Door;
 import game2d.main.Assets;
 import game2d.main.GamePanel;
 import game2d.main.InputHandler;
@@ -8,21 +9,21 @@ import game2d.util.Audio;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class Player extends Entity {
+public abstract class Player extends Entity {
 
     InputHandler inputHandler;
-    public int stamina = 0;
     public int maxStamina = 150;
+    public int stamina = maxStamina;
+
+    public int talking = -1;
 
     public Player(GamePanel gp, InputHandler inputHandler) {
         super(gp);
         this.inputHandler = inputHandler;
 
-        collisionBox = new Rectangle();
-        collisionBox.x = 3 * GamePanel.SCALE_FACTOR;
-        collisionBox.y = 6 * GamePanel.SCALE_FACTOR;
-        collisionBox.width = 10 * GamePanel.SCALE_FACTOR;
-        collisionBox.height = 10 * GamePanel.SCALE_FACTOR;
+        name = "player";
+
+        collisionBox = setBox(3, 6, 10, 10);
 
         setDefaultValues();
         getTextures();
@@ -31,34 +32,9 @@ public class Player extends Entity {
     @Override
     public void setDefaultValues() {
         maxHealth = 20;
-        worldX = GamePanel.SCALED_TILE_SIZE * 6;
-        worldY = GamePanel.SCALED_TILE_SIZE * 2;
         speed = 5;
         direction = "down";
-        health = 60;
-    }
-
-    public void getTextures() {
-        up = new BufferedImage[3];
-        down = new BufferedImage[3];
-        left = new BufferedImage[3];
-        right = new BufferedImage[3];
-
-        up[0] = setup("/player/up0");
-        up[1] = setup("/player/up1");
-        up[2] = setup("/player/up2");
-
-        left[0] = setup("/player/left0");
-        left[1] = setup("/player/left1");
-        left[2] = setup("/player/left2");
-
-        down[0] = setup("/player/down0");
-        down[1] = setup("/player/down1");
-        down[2] = setup("/player/down2");
-
-        right[0] = setup("/player/right0");
-        right[1] = setup("/player/right1");
-        right[2] = setup("/player/right2");
+        health = maxHealth;
     }
 
     public void update() {
@@ -90,10 +66,22 @@ public class Player extends Entity {
         updateAnimations();
 
         // COLLISION
+        talkObject(
+                gp.collisionDetector.checkInteraction(this)
+        );
         interactObject(
                 gp.collisionDetector.checkObject(this, true)
         );
         gp.collisionDetector.checkTile(this);
+    }
+
+    private void talkObject(int slot) {
+        if (slot != -1 && gp.inputHandler.actionPressed) {
+            talking = slot;
+            gp.currentGameState = GamePanel.DIALOGUE_STATE;
+        } else {
+            talking = -1;
+        }
     }
 
     private void updateAnimations() {
@@ -136,18 +124,40 @@ public class Player extends Entity {
                     gp.vars.keys++;
                     gp.obj[slot] = null;
 
-                    gp.playSound(Audio.GET_ITEM);
+                    gp.playSound(Audio.GET_ITEM_UNIMPORTANT);
                     break;
-                case "locked_door":
+                case "door_locked":
                     if (gp.vars.keys > 0) {
                         gp.vars.keys--;
-                        gp.obj[slot] = null;
 
-                        gp.playSound(Audio.UNLOCK_DOOR);
+                        int x = gp.obj[slot].worldX;
+                        int y = gp.obj[slot].worldY;
+                        String direction = gp.obj[slot].direction;
+
+                        gp.obj[slot] = new Door(gp);
+                        gp.obj[slot].worldX = x;
+                        gp.obj[slot].worldY = y;
+                        gp.obj[slot].direction = direction;
+                        gp.obj[slot].open = true;
+
+                        gp.playSound(Audio.DOOR_UNLOCK);
                     } else {
                         gp.collisionDetector.handleObjectCollision(this, slot);
                     }
                     break;
+                case "door":
+                    gp.obj[slot].open = true;
+                    gp.obj[slot].closeTimer = CLOSE_TIMER_START_VALUE;
+                    gp.playSound(Audio.DOOR_OPEN);
+                    break;
+                case "door_open":
+                    gp.obj[slot].closeTimer = CLOSE_TIMER_START_VALUE;
+                    break;
+                case "slime":
+                    if (flickering <= 0) {
+                        flickering = FLICKERING_TIME;
+                        health -= gp.obj[slot].attackDamage;
+                    }
                 case "generic":
                     gp.collisionDetector.handleObjectCollision(this, slot);
             }

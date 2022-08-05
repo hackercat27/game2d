@@ -1,6 +1,7 @@
 package game2d.entity;
 
 import game2d.main.GamePanel;
+import game2d.util.Audio;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -9,27 +10,14 @@ import java.util.Random;
 public class NPC extends Entity {
 
     public int screenX, screenY;
-    public int actionCounter = 0;
     boolean moving = false;
 
 
     public NPC(GamePanel gp) {
         super(gp);
 
-        collisionBox = new Rectangle();
-        collisionBox.x = 3 * GamePanel.SCALE_FACTOR;
-        collisionBox.y = 6 * GamePanel.SCALE_FACTOR;
-        collisionBox.width = 10 * GamePanel.SCALE_FACTOR;
-        collisionBox.height = 10 * GamePanel.SCALE_FACTOR;
-
-        actionBox = new Rectangle();
-        actionBox.x = -4 * GamePanel.SCALE_FACTOR;
-        actionBox.y = -4 * GamePanel.SCALE_FACTOR;
-        actionBox.width = 24 * GamePanel.SCALE_FACTOR;
-        actionBox.height = 24 * GamePanel.SCALE_FACTOR;
-
-        screenX = GamePanel.SCREEN_WIDTH / 2 - GamePanel.SCALED_TILE_SIZE / 2;
-        screenY = GamePanel.SCREEN_HEIGHT / 2 - GamePanel.SCALED_TILE_SIZE / 2;
+        collisionBox = setBox(3, 6, 10, 10);
+        actionBox = setBox(-4, -4, 24, 24);
 
         setDefaultValues();
         getTextures();
@@ -41,6 +29,7 @@ public class NPC extends Entity {
         worldY = GamePanel.SCALED_TILE_SIZE * 4;
         speed = 4;
         direction = "down";
+        dialogue = "missing (from npc).";
     }
 
     public void getTextures() {
@@ -49,18 +38,18 @@ public class NPC extends Entity {
         left = new BufferedImage[3];
         right = new BufferedImage[3];
 
-        up[0] = setup("/npc/up0");
-        up[1] = setup("/npc/up1");
-        up[2] = setup("/npc/up2");
-        left[0] = setup("/npc/left0");
-        left[1] = setup("/npc/left1");
-        left[2] = setup("/npc/left2");
-        down[0] = setup("/npc/down0");
-        down[1] = setup("/npc/down1");
-        down[2] = setup("/npc/down2");
-        right[0] = setup("/npc/right0");
-        right[1] = setup("/npc/right1");
-        right[2] = setup("/npc/right2");
+        up[0] = setup("npc/up0");
+        up[1] = setup("npc/up1");
+        up[2] = setup("npc/up2");
+        left[0] = setup("npc/left0");
+        left[1] = setup("npc/left1");
+        left[2] = setup("npc/left2");
+        down[0] = setup("npc/down0");
+        down[1] = setup("npc/down1");
+        down[2] = setup("npc/down2");
+        right[0] = setup("npc/right0");
+        right[1] = setup("npc/right1");
+        right[2] = setup("npc/right2");
     }
 
     @Override
@@ -68,15 +57,11 @@ public class NPC extends Entity {
         Random rand = new Random();
         int i = rand.nextInt(100) + 1;
 
-        if ((collisionAbove && !collisionBelow) ||
-                (collisionBelow && !collisionAbove) ||
-                (collisionRight && !collisionLeft) ||
-                (collisionLeft && !collisionRight)) {
+        if (collisionAbove || collisionBelow || collisionLeft || collisionRight) {
             actionCounter = 0;
         }
 
         if (actionCounter <= 0) {
-
 
             if (i % 4 == 0) {
                 direction = "up";
@@ -91,7 +76,6 @@ public class NPC extends Entity {
         } else {
             actionCounter--;
         }
-
     }
 
     @Override
@@ -146,9 +130,20 @@ public class NPC extends Entity {
             switch(gp.obj[slot].name) {
                 case "key":
                     break;
-                case "locked_door":
+                case "door":
+                    gp.obj[slot].open = true;
+                    gp.obj[slot].closeTimer = CLOSE_TIMER_START_VALUE;
+                    gp.playSound(Audio.DOOR_OPEN);
+                    break;
+                case "door_open":
+                    gp.obj[slot].closeTimer = CLOSE_TIMER_START_VALUE;
+                    break;
+                case "slime":
+                case "player":
+                case "door_locked":
                 case "generic":
                     gp.collisionDetector.handleObjectCollision(this, slot);
+                    actionCounter = 0;
             }
         }
     }

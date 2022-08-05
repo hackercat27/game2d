@@ -17,6 +17,7 @@ public class HeadsUpDisplay extends Overlay {
     static final int HEALTH_BAR = 3;
     static final int HEALTH_BAR_BACKGROUND = 4;
     static final int KEY_COUNT_ICON = 5;
+    static final int DIALOGUE_BOX = 6;
 
     public HeadsUpDisplay(GamePanel gp) {
         this.gp = gp;
@@ -33,6 +34,8 @@ public class HeadsUpDisplay extends Overlay {
         image[HEALTH_BAR] = setup("gui/health_bar");
         image[HEALTH_BAR_BACKGROUND] = setup("gui/health_bar_background");
         image[KEY_COUNT_ICON] = setup("gui/key");
+
+        image[DIALOGUE_BOX] = setup("gui/dialogue_box");
     }
 
     public void draw(Graphics2D g2) {
@@ -46,9 +49,22 @@ public class HeadsUpDisplay extends Overlay {
         if (gp.currentGameState == GamePanel.PAUSE_STATE) {
             drawPauseScreen(g2);
         }
+        if (gp.currentGameState == GamePanel.DIALOGUE_STATE) {
+            drawDialogue(g2);
+        }
     }
 
     // DRAWING STUFF
+    private void drawDialogue(Graphics2D g2) {
+        if (gp.player.talking != -1) {
+            g2.drawImage(image[DIALOGUE_BOX], 0, 0, GamePanel.SCREEN_WIDTH, GamePanel.SCREEN_HEIGHT, null);
+            g2.setColor(Assets.COLOR_TEXT);
+            g2.drawString(gp.obj[gp.player.talking].dialogue, 10, -10);
+        } else {
+            gp.currentGameState = GamePanel.PLAY_STATE;
+        }
+    }
+
     private void drawNormalHud(Graphics2D g2) {
         int x = 40;
         int y = 40;

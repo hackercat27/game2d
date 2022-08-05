@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * @version 0.0.5-alpha
+ * @version 0.0.7-alpha
  * @author hackercat
  */
 public class Main {
@@ -22,6 +22,7 @@ public class Main {
         System.exit(1000);
         return null;
     }
+
     //TODO: documentation hell (you will regret ignoring this later when you don't understand any of the code you wrote)
     public static void main(String[] args) {
 

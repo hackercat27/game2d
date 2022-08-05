@@ -12,6 +12,7 @@ public class InputHandler implements KeyListener, MouseListener {
     public boolean vignetteToggled = true;
     public boolean hudToggled = false;
     public boolean cameraPanUp, cameraPanDown, cameraPanLeft, cameraPanRight;
+    public boolean actionPressed = false;
 
     public boolean freeCamera, fixedCamera, playerCamera;
     GamePanel gp;
@@ -37,7 +38,7 @@ public class InputHandler implements KeyListener, MouseListener {
         }
 
         if (code == KeyEvent.VK_SPACE) {
-
+            actionPressed = true;
         }
 
         if (code == KeyEvent.VK_W) { // up

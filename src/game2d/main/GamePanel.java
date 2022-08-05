@@ -2,6 +2,8 @@ package game2d.main;
 
 import game2d.entity.Entity;
 import game2d.entity.Player;
+import game2d.entity.player.Fox;
+import game2d.entity.player.Protogen;
 import game2d.overlay.Background;
 import game2d.overlay.HeadsUpDisplay;
 import game2d.overlay.ScreenEffects;
@@ -47,7 +49,7 @@ public class GamePanel extends JPanel implements Runnable {
     Thread logicThread;
 
     public InputHandler inputHandler = new InputHandler(this);
-    public Player player = new Player(this, inputHandler);
+    public Player player;
     public Entity[] obj = new Entity[10];
     ArrayList<Entity> entityList = new ArrayList<>();
     public TileManager tileManager = new TileManager(this);
@@ -79,10 +81,12 @@ public class GamePanel extends JPanel implements Runnable {
     public void setupGame() {
         currentGameState = PLAY_STATE;
 
-        playMusic(2);
+        playMusic(1);
 
         assetSetter.setObject();
         assetSetter.setNPC();
+        assetSetter.setEnemy();
+        assetSetter.setPlayer();
 
         tempScreen = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         g2 = (Graphics2D) tempScreen.getGraphics();
@@ -168,9 +172,14 @@ public class GamePanel extends JPanel implements Runnable {
         music.update();
         sfx.update();
         if (currentGameState == PLAY_STATE) {
-            //update all npc entities
+            //update all entities
             for (int i = 0; i < obj.length; i++) {
-                if (obj[i] != null) obj[i].update();
+                if (obj[i] != null && (
+                        (obj[i].worldX > tileManager.cameraWorldX - SCALED_TILE_SIZE &&
+                                obj[i].worldY > tileManager.cameraWorldY - SCALED_TILE_SIZE &&
+                                obj[i].worldX < tileManager.cameraWorldX + SCREEN_WIDTH + SCALED_TILE_SIZE &&
+                                obj[i].worldY < tileManager.cameraWorldY + SCREEN_HEIGHT + SCALED_TILE_SIZE)
+                )) obj[i].update();
             }
 
             player.update();
@@ -178,6 +187,11 @@ public class GamePanel extends JPanel implements Runnable {
         }
         if (currentGameState == PAUSE_STATE) {
 
+        }
+        if (currentGameState == DIALOGUE_STATE) {
+            if (inputHandler.actionPressed) {
+                currentGameState = PLAY_STATE;
+            }
         }
     }
 
@@ -188,7 +202,13 @@ public class GamePanel extends JPanel implements Runnable {
         //ADD ENTITIES TO THE DRAW LIST
         entityList.add(player);
         for (Entity value : obj) {
-            if (value != null) {
+            if (value != null && (
+                    (value.worldX > tileManager.cameraWorldX - SCALED_TILE_SIZE &&
+                            value.worldY > tileManager.cameraWorldY - SCALED_TILE_SIZE &&
+                            value.worldX < tileManager.cameraWorldX + SCREEN_WIDTH + SCALED_TILE_SIZE &&
+                            value.worldY < tileManager.cameraWorldY + SCREEN_HEIGHT + SCALED_TILE_SIZE)
+
+                    )) {
                 entityList.add(value);
             }
         }

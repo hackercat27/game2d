@@ -147,9 +147,6 @@ public class TileManager {
             targetCameraWorldX = gp.player.worldX - (gp.player.worldX % GamePanel.SCREEN_WIDTH);
             targetCameraWorldY = gp.player.worldY - (gp.player.worldY % GamePanel.SCREEN_HEIGHT);
 
-            //targetCameraWorldX += (gp.SCALED_TILE_SIZE / 2);
-            //targetCameraWorldY += (gp.SCALED_TILE_SIZE / 2);
-
             interpolationIndex = 0;
             generatedInterpolation = false;
         } else {
@@ -203,17 +200,17 @@ public class TileManager {
         while (worldCol < GamePanel.MAX_WORLD_COL && worldY < cameraWorldY + GamePanel.SCREEN_HEIGHT) {
 
             //if the tile we're trying to render isn't on the screen, don't render it
-            if (worldX > cameraWorldX ||
-                worldY > cameraWorldY ||
-                worldX < cameraWorldX + GamePanel.SCREEN_WIDTH ||
-                worldY < cameraWorldY + GamePanel.SCREEN_HEIGHT) {
+            //if (worldX > cameraWorldX ||
+            //    worldY > cameraWorldY ||
+            //    worldX < cameraWorldX + GamePanel.SCREEN_WIDTH ||
+            //    worldY < cameraWorldY + GamePanel.SCREEN_HEIGHT) {
 
                 g2.drawImage(tile[mapTilePos[worldCol][worldRow]].image, worldX - cameraWorldX, worldY - cameraWorldY,null);
-            }
+            //}
             worldCol++;
             worldX = worldCol * GamePanel.SCALED_TILE_SIZE;
 
-            if (worldCol == GamePanel.MAX_WORLD_COL) {
+            if (worldCol == GamePanel.MAX_WORLD_COL || worldCol * GamePanel.SCALE_FACTOR == cameraWorldX + GamePanel.SCREEN_WIDTH) {
                 worldCol = 0;
                 worldX = worldCol;
 

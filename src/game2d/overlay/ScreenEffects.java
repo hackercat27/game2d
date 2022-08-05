@@ -33,7 +33,7 @@ public class ScreenEffects extends Overlay {
         if (gp.inputHandler.vignetteToggled) {
             g2.drawImage(image[VIGNETTE], 0, 0, GamePanel.SCREEN_WIDTH, GamePanel.SCREEN_HEIGHT, null);
         }
-        int offset = gp.player.health * GamePanel.SCALE_FACTOR;
-        //g2.drawImage(image[LOW_HEALTH_VIGNETTE], -offset, -offset, gp.SCREEN_WIDTH + (2 * offset), gp.SCREEN_HEIGHT + (2 * offset), null);
+        int offset = (gp.player.health - 1) * 40;
+        g2.drawImage(image[LOW_HEALTH_VIGNETTE], -offset, -offset, GamePanel.SCREEN_WIDTH + (2 * offset), GamePanel.SCREEN_HEIGHT + (2 * offset), null);
     }
 }

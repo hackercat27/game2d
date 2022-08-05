@@ -16,8 +16,11 @@ public class Assets {
             font = Font.createFont(Font.TRUETYPE_FONT, new File("/misc/font.ttf")).deriveFont(Font.PLAIN, 20);
         } catch (NullPointerException | FontFormatException | IOException e) {
             e.printStackTrace();
-            font = new Font("Arial", Font.PLAIN, 20);
+            String fontName = "Arial";
+            System.err.println("\nUsing font \"" + fontName + "\" instead.");
+            font = new Font(fontName, Font.PLAIN, 20);
+        } finally {
+            GAME_FONT = font;
         }
-        GAME_FONT = font;
     }
 }

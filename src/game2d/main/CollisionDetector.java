@@ -27,7 +27,7 @@ public class CollisionDetector {
                 objBox.width = gp.obj[i].collisionBox.width;
                 objBox.height = gp.obj[i].collisionBox.height;
 
-                if (entityBox.intersects(objBox) && isPlayer) {
+                if (entityBox.intersects(objBox) && !((entity.worldY == gp.obj[i].worldY) && (entity.worldX == gp.obj[i].worldX))) {
                     return i;
                 }
             }
@@ -37,32 +37,49 @@ public class CollisionDetector {
     }
 
     public void handleObjectCollision(Entity entity, int slot) {
-        Rectangle entityBox = new Rectangle();
+        int bonusOffset = 1;
 
-        //TODO: remove unnecessary secondary Rectangle and just grab the values directly from the entity's collision box
+        //TODO: determine the direction that the player needs to be pushed in some other way than just the direction they're facing, as it leads to buggy behaviour with moving entities
+
+        switch (entity.direction) {
+            case "up":
+                entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y + gp.obj[slot].collisionBox.height) - (entity.collisionBox.y + entity.worldY) + bonusOffset;
+                break;
+            case "down":
+                entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y) - ((entity.collisionBox.y + entity.worldY) + entity.collisionBox.height) - bonusOffset;
+                break;
+            case "left":
+                entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x + gp.obj[slot].collisionBox.width) - (entity.collisionBox.x + entity.worldX) + bonusOffset;
+                break;
+            case "right":
+                entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x) - ((entity.collisionBox.x + entity.worldX) + entity.collisionBox.width) - bonusOffset;
+                break;
+        }
+    }
+
+
+    public int checkInteraction(Entity entity) {
+        Rectangle objBox = new Rectangle();
+        Rectangle entityBox = new Rectangle();
 
         entityBox.x = entity.collisionBox.x + entity.worldX;
         entityBox.y = entity.collisionBox.y + entity.worldY;
         entityBox.width = entity.collisionBox.width;
         entityBox.height = entity.collisionBox.height;
 
-        int bonusOffset = 1;
-        int distance;
+        for (int i = 0; i < gp.obj.length; i++) {
 
-        switch (entity.direction) {
-            case "up":
-                entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y + gp.obj[slot].collisionBox.height) - entityBox.y + bonusOffset;
-                break;
-            case "down":
-                entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y) - (entityBox.y + entityBox.height) - bonusOffset;
-                break;
-            case "left":
-                entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x + gp.obj[slot].collisionBox.width) - entityBox.x + bonusOffset;
-                break;
-            case "right":
-                entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x) - (entityBox.x + entityBox.width) - bonusOffset;
-                break;
+            if (gp.obj[i] != null && gp.obj[i].actionBox != null) {
+                objBox.x = gp.obj[i].actionBox.x + gp.obj[i].worldX;
+                objBox.y = gp.obj[i].actionBox.y + gp.obj[i].worldY;
+                objBox.width = gp.obj[i].actionBox.width;
+                objBox.height = gp.obj[i].actionBox.height;
+                if (entityBox.intersects(objBox)) {
+                    return i;
+                }
+            }
         }
+        return -1;
     }
 
     public void checkTile(Entity entity) {

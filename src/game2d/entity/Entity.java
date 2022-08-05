@@ -18,13 +18,24 @@ public class Entity {
     public int health;
     public int maxHealth;
 
-    public BufferedImage[] up, down, left, right;
+    public int attackDamage = 1;
+
+    public int actionCounter = 0;
+
+    public BufferedImage[] up = new BufferedImage[3];
+    public BufferedImage[] down = new BufferedImage[3];
+    public BufferedImage[] left = new BufferedImage[3];
+    public BufferedImage[] right = new BufferedImage[3];
+
     public String direction;
 
     public String name = "generic";
 
+    public String dialogue = "missingNo.";
+
     public boolean visible;
-    public boolean flickering;
+    public int flickering = 0;
+    public static final int FLICKERING_TIME = 120;
 
     public int animationCounter = 0;
     public int sprite = 1;
@@ -34,21 +45,31 @@ public class Entity {
 
     public GamePanel gp;
 
+    public boolean open = true;
+    public int closeTimer = 0;
+    public static final int CLOSE_TIMER_START_VALUE = 60;
+
+    //TODO: organise methods and variables; it's actually genuinely hard to navigate this class
+
     public Entity(GamePanel gp) {
         this.gp = gp;
         setDefaultValues();
         getTextures();
     }
 
+    public Rectangle setBox(int x, int y, int width, int height) {
+        Rectangle rect = new Rectangle();
+        rect.x = x * GamePanel.SCALE_FACTOR;
+        rect.y = y * GamePanel.SCALE_FACTOR;
+        rect.width = width * GamePanel.SCALE_FACTOR;
+        rect.height = height * GamePanel.SCALE_FACTOR;
+
+        return rect;
+    }
+
     public void getTextures() {}
 
-    public void setDefaultValues() {
-        collisionBox = new Rectangle();
-        collisionBox.x = 3 * GamePanel.SCALE_FACTOR;
-        collisionBox.y = 6 * GamePanel.SCALE_FACTOR;
-        collisionBox.width = 10 * GamePanel.SCALE_FACTOR;
-        collisionBox.height = 8 * GamePanel.SCALE_FACTOR;
-    }
+    public void setDefaultValues() {}
 
     public BufferedImage setup(String imagePath) {
         ToolBox util = new ToolBox();
@@ -61,7 +82,7 @@ public class Entity {
             e.printStackTrace();
             System.exit(1000);
         } catch (NullPointerException e) {
-            System.err.println("Missing texture \"/textures/entity" + imagePath + ".png\"!");
+            System.err.println("Missing texture \"/textures/entity/" + imagePath + ".png\"!");
 
             image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2 = image.createGraphics();
@@ -102,8 +123,9 @@ public class Entity {
                 else if (sprite == 3) image = right[2];
             }
         }
-        if (flickering) {
-            visible = ((gp.globalCounter / 2) % 2) == 0;
+        if (flickering > 0) {
+            flickering--;
+            visible = (gp.globalCounter % 2) == 0;
         } else {
             visible = true;
         }
