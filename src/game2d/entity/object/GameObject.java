@@ -16,6 +16,7 @@ public class GameObject extends Entity {
         super(gp);
         direction = "down";
         sprite = 0;
+        snapCollision = true;
     }
 
     @Override
@@ -30,7 +31,7 @@ public class GameObject extends Entity {
             e.printStackTrace();
             System.exit(1000);
         } catch (NullPointerException e) {
-            System.err.println("Missing texture \"/textures/entity" + imagePath + ".png\"!");
+            System.err.println("Missing texture \"/textures/object/" + imagePath + ".png\"!");
 
             image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2 = image.createGraphics();

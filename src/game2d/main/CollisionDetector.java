@@ -39,21 +39,43 @@ public class CollisionDetector {
     public void handleObjectCollision(Entity entity, int slot) {
         int bonusOffset = 1;
 
-        //TODO: determine the direction that the player needs to be pushed in some other way than just the direction they're facing, as it leads to buggy behaviour with moving entities
+        Rectangle objBox = new Rectangle(gp.obj[slot].collisionBox.x + gp.obj[slot].worldX, gp.obj[slot].collisionBox.y + gp.obj[slot].worldY, gp.obj[slot].collisionBox.width, gp.obj[slot].collisionBox.height);
+        Rectangle entityBox = new Rectangle(entity.collisionBox.x + entity.worldX, entity.collisionBox.y + entity.worldY, entity.collisionBox.width, entity.collisionBox.height);
 
-        switch (entity.direction) {
-            case "up":
-                entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y + gp.obj[slot].collisionBox.height) - (entity.collisionBox.y + entity.worldY) + bonusOffset;
-                break;
-            case "down":
-                entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y) - ((entity.collisionBox.y + entity.worldY) + entity.collisionBox.height) - bonusOffset;
-                break;
-            case "left":
-                entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x + gp.obj[slot].collisionBox.width) - (entity.collisionBox.x + entity.worldX) + bonusOffset;
-                break;
-            case "right":
-                entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x) - ((entity.collisionBox.x + entity.worldX) + entity.collisionBox.width) - bonusOffset;
-                break;
+        int xDiff = (int) (objBox.getCenterX() - entityBox.getCenterX());
+        int yDiff = (int) (objBox.getCenterY() - entityBox.getCenterY());
+
+        int xDiffUnsigned = (int) Math.copySign(xDiff, 1.0);
+        int yDiffUnsigned = (int) Math.copySign(yDiff, 1.0);
+
+        if (yDiffUnsigned > xDiffUnsigned) { //if true, then the point is closer to the y intercept than the x intercept, so the change happens on the y-axis
+            if (yDiff > 0) { //if true, the number is positive therefor the entity is below the object
+                if (gp.obj[slot].snapCollision) {
+                    entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y) - ((entity.collisionBox.y + entity.worldY) + entity.collisionBox.height) - bonusOffset;
+                } else {
+                    entity.worldY -= entity.speed;
+                }
+            } else { //else, the number is negative (or 0) therefor the entity is above the object
+                if (gp.obj[slot].snapCollision) {
+                    entity.worldY += (gp.obj[slot].worldY + gp.obj[slot].collisionBox.y + gp.obj[slot].collisionBox.height) - (entity.collisionBox.y + entity.worldY) + bonusOffset;
+                } else {
+                    entity.worldY += entity.speed;
+                }
+            }
+        } else { //else, the point is closer to the x intercept than the y intercept, so the change happens on the x-axis
+            if (xDiff > 0) { //if true, the number is positive therefor the entity is to the right of the object
+                if (gp.obj[slot].snapCollision) {
+                    entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x) - ((entity.collisionBox.x + entity.worldX) + entity.collisionBox.width) - bonusOffset;
+                } else {
+                    entity.worldX -= entity.speed;
+                }
+            } else { //else, the number is negative (or 0) therefor the entity is to the left of the object
+                if (gp.obj[slot].snapCollision) {
+                    entity.worldX += (gp.obj[slot].worldX + gp.obj[slot].collisionBox.x + gp.obj[slot].collisionBox.width) - (entity.collisionBox.x + entity.worldX) + bonusOffset;
+                } else {
+                    entity.worldX += entity.speed;
+                }
+            }
         }
     }
 
@@ -82,86 +104,71 @@ public class CollisionDetector {
         return -1;
     }
 
+    private void handleTileCollision(Entity entity, Rectangle entityBox, Rectangle tile, int col, int row) {
+        tile.x = col * GamePanel.SCALED_TILE_SIZE;
+        tile.y = row * GamePanel.SCALED_TILE_SIZE;
+
+        int bonusOffset = 1;
+
+        int tileIndex = gp.tileManager.mapTilePos[col][row];
+
+        if (gp.tileManager.tile[tileIndex].collision && gp.inputHandler.hudToggled) {
+            gp.g2.setColor(Assets.COLOR_TILE_COLLISION);
+            gp.g2.fillRect(tile.x - gp.tileManager.cameraWorldX, tile.y - gp.tileManager.cameraWorldY, tile.width, tile.height);
+        }
+        if (entityBox.intersects(tile) && gp.tileManager.tile[tileIndex].collision) {
+            entity.colliding = true;
+
+
+            int xDiff = (int) (tile.getCenterX() - entityBox.getCenterX());
+            int yDiff = (int) (tile.getCenterY() - entityBox.getCenterY());
+
+            int xDiffUnsigned = (int) Math.copySign(xDiff, 1.0);
+            int yDiffUnsigned = (int) Math.copySign(yDiff, 1.0);
+
+
+            if (yDiffUnsigned > xDiffUnsigned) { //if true, then the point is closer to the y intercept than the x intercept, so the change happens on the y-axis
+                if (yDiff > 0) { //if true, the number is positive therefor the entity is below the tile
+                    entity.worldY += tile.y - ((entity.collisionBox.y + entity.worldY) + entity.collisionBox.height) - bonusOffset;
+                } else { //else, the number is negative (or 0) therefor the entity is above the tile
+                    entity.worldY += (tile.y + tile.height) - (entity.collisionBox.y + entity.worldY) + bonusOffset;
+                }
+            } else { //else, the point is closer to the x intercept than the y intercept, so the change happens on the x-axis
+                if (xDiff > 0) { //if true, the number is positive therefor the entity is to the right of the tile
+                    entity.worldX += tile.x - ((entity.collisionBox.x + entity.worldX) + entity.collisionBox.width) - bonusOffset;
+                } else { //else, the number is negative (or 0) therefor the entity is to the left of the tile
+                    entity.worldX += (tile.x + tile.width) - (entity.collisionBox.x + entity.worldX) + bonusOffset;
+                }
+            }
+        }
+    }
+
     public void checkTile(Entity entity) {
-        int entityLeftWorldX = entity.worldX + entity.collisionBox.x;
-        int entityRightWorldX =  entity.worldX + entity.collisionBox.x + entity.collisionBox.width;
-        int entityTopWorldY = entity.worldY + entity.collisionBox.y;
-        int entityBottomWorldY = entity.worldY + entity.collisionBox.y + entity.collisionBox.height;
+        Rectangle tile = new Rectangle(0, 0, GamePanel.SCALED_TILE_SIZE, GamePanel.SCALED_TILE_SIZE);
+        Rectangle entityBox = new Rectangle(entity.collisionBox.x + entity.worldX, entity.collisionBox.y + entity.worldY, entity.collisionBox.width, entity.collisionBox.height);
 
-        int entityLeftCol = entityLeftWorldX / GamePanel.SCALED_TILE_SIZE;
-        int entityRightCol = entityRightWorldX / GamePanel.SCALED_TILE_SIZE;
-        int entityTopRow; //= entityTopWorldY / gp.SCALED_TILE_SIZE;
-        int entityBottomRow; //= entityBottomWorldY / gp.SCALED_TILE_SIZE;
+        int entityWorldCol = entity.worldX / GamePanel.SCALED_TILE_SIZE;
+        int entityWorldRow = entity.worldY / GamePanel.SCALED_TILE_SIZE;
 
-        int bonusOffset = 0;
+        int range = 1;
 
-        int tileNum1, tileNum2;
+        int worldCol = entityWorldCol - range + 1;
+        int worldRow = entityWorldRow - range + 1;
 
-        try {
 
-            //reset collision states
-            entity.collisionAbove = false;
-            entity.collisionBelow = false;
-            entity.collisionLeft = false;
-            entity.collisionRight = false;
+        entity.colliding = false;
 
-            entityTopRow = (entityTopWorldY - bonusOffset) / GamePanel.SCALED_TILE_SIZE;
-            tileNum1 = gp.tileManager.mapTilePos[entityLeftCol][entityTopRow];
-            tileNum2 = gp.tileManager.mapTilePos[entityRightCol][entityTopRow];
-
-            if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
-                entity.collisionAbove = true;
+        while (worldRow <= entityWorldRow + range + 1) {
+            try {
+                handleTileCollision(entity, entityBox, tile, worldCol, worldRow);
+            } catch (Exception e) {
+                //empty catch block yayyy
             }
-
-            entityBottomRow = (entityBottomWorldY + bonusOffset) / GamePanel.SCALED_TILE_SIZE;
-            tileNum1 = gp.tileManager.mapTilePos[entityLeftCol][entityBottomRow];
-            tileNum2 = gp.tileManager.mapTilePos[entityRightCol][entityBottomRow];
-
-            if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
-                entity.collisionBelow = true;
+            worldCol++;
+            if (worldCol > entityWorldCol + range + 1) {
+                worldCol = entityWorldCol - range + 1;
+                worldRow++;
             }
-
-            entityLeftCol = (entityLeftWorldX - bonusOffset) / GamePanel.SCALED_TILE_SIZE;
-            tileNum1 = gp.tileManager.mapTilePos[entityLeftCol][entityTopRow];
-            tileNum2 = gp.tileManager.mapTilePos[entityLeftCol][entityBottomRow];
-
-            if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
-                entity.collisionLeft = true;
-            }
-
-            entityRightCol = (entityRightWorldX + bonusOffset) / GamePanel.SCALED_TILE_SIZE;
-            tileNum1 = gp.tileManager.mapTilePos[entityRightCol][entityTopRow];
-            tileNum2 = gp.tileManager.mapTilePos[entityRightCol][entityBottomRow];
-
-            if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
-                entity.collisionRight = true;
-            }
-
-        } catch (ArrayIndexOutOfBoundsException e) {
-            e.printStackTrace();
-        }
-
-        // HANDLING COLLISION
-
-        bonusOffset = 1;
-
-        if (entity.collisionAbove && !entity.collisionBelow) {
-            entity.worldY = ((entity.worldY - (entity.worldY % GamePanel.SCALED_TILE_SIZE)) + GamePanel.SCALED_TILE_SIZE) - entity.collisionBox.y + bonusOffset;
-            entity.collisionAbove = false;
-        }
-
-        if (entity.collisionLeft && !entity.collisionRight) {
-            entity.worldX = ((entity.worldX - (entity.worldX % GamePanel.SCALED_TILE_SIZE)) + GamePanel.SCALED_TILE_SIZE) - entity.collisionBox.x + bonusOffset;
-            entity.collisionLeft = false;
-        }
-        if (entity.collisionRight && !entity.collisionLeft) {
-            entity.worldX = (entity.worldX - (entity.worldX % GamePanel.SCALED_TILE_SIZE)) + (GamePanel.SCALED_TILE_SIZE - (entity.collisionBox.x + entity.collisionBox.width)) - bonusOffset;
-            entity.collisionRight = false;
-        }
-
-        if (entity.collisionBelow && !entity.collisionAbove) {
-            entity.worldY = (entity.worldY - (entity.worldY % GamePanel.SCALED_TILE_SIZE)) + (GamePanel.SCALED_TILE_SIZE - (entity.collisionBox.y + entity.collisionBox.height)) - bonusOffset;
-            entity.collisionBelow = false;
         }
     }
 }

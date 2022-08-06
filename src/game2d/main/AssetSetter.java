@@ -38,14 +38,15 @@ public class AssetSetter {
         load(new Key(gp), 7, 10);
         load(new Key(gp), 24, 3);
         load(new DoorLocked(gp), 15, 5);
+        load(new DoorLocked(gp), 15, 3);
         load(new DoorLocked(gp), 24, 4);
         load(new Door(gp), 10, 9);
     }
 
     public void setEnemy() {
         load(new Enemy(gp), 26, 7);
-        load(new Enemy(gp), 26, 7);
-        load(new Enemy(gp), 26, 7);
+        load(new Enemy(gp), 25, 7);
+        load(new Enemy(gp), 24, 7);
     }
 
     public void setNPC() {

@@ -3,15 +3,12 @@ package game2d.entity;
 import game2d.main.GamePanel;
 import game2d.util.Audio;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public class NPC extends Entity {
 
-    public int screenX, screenY;
     boolean moving = false;
-
 
     public NPC(GamePanel gp) {
         super(gp);
@@ -19,19 +16,11 @@ public class NPC extends Entity {
         collisionBox = setBox(3, 6, 10, 10);
         actionBox = setBox(-4, -4, 24, 24);
 
-        setDefaultValues();
-        getTextures();
-    }
-
-    @Override
-    public void setDefaultValues() {
-        worldX = GamePanel.SCALED_TILE_SIZE * 8;
-        worldY = GamePanel.SCALED_TILE_SIZE * 4;
         speed = 4;
-        direction = "down";
         dialogue = "missing (from npc).";
     }
 
+    @Override
     public void getTextures() {
         up = new BufferedImage[3];
         down = new BufferedImage[3];
@@ -55,33 +44,46 @@ public class NPC extends Entity {
     @Override
     public void setAction() {
         Random rand = new Random();
-        int i = rand.nextInt(100) + 1;
 
-        if (collisionAbove || collisionBelow || collisionLeft || collisionRight) {
-            actionCounter = 0;
-        }
+            int i = rand.nextInt(100) + 1;
 
-        if (actionCounter <= 0) {
-
-            if (i % 4 == 0) {
-                direction = "up";
-            } else if (i % 4 == 1) {
-                direction = "down";
-            } else if (i % 4 == 2) {
-                direction = "left";
-            } else {
-                direction = "right";
+            if (colliding) {
+                actionCounter = 0;
             }
-            actionCounter = rand.nextInt(120) + 120;
-        } else {
-            actionCounter--;
+
+            if (actionCounter <= 0) {
+
+                if (i % 4 == 0) {
+                    direction = "up";
+                } else if (i % 4 == 1) {
+                    direction = "down";
+                } else if (i % 4 == 2) {
+                    direction = "left";
+                } else {
+                    direction = "right";
+                }
+                actionCounter = rand.nextInt(120) + 120;
+            } else {
+                actionCounter--;
+            }
         }
+
+
+    @Override
+    public void checkCollision() {
+        // COLLISION
+        interactObject(
+                gp.collisionDetector.checkObject(this, false)
+        );
+        gp.collisionDetector.checkTile(this);
+
     }
 
     @Override
     public void update() {
         setAction();
         updateAnimations();
+        checkCollision();
 
         // MOVEMENT
         moving = true;
@@ -98,12 +100,6 @@ public class NPC extends Entity {
             case "right":
                 worldX += speed;
         }
-
-        // COLLISION
-        interactObject(
-                gp.collisionDetector.checkObject(this, false)
-        );
-        gp.collisionDetector.checkTile(this);
     }
 
     private void updateAnimations() {
@@ -125,7 +121,7 @@ public class NPC extends Entity {
         }
     }
 
-    private void interactObject(int slot) {
+    public void interactObject(int slot) {
         if (slot != -1) {
             switch(gp.obj[slot].name) {
                 case "key":

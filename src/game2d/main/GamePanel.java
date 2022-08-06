@@ -2,8 +2,6 @@ package game2d.main;
 
 import game2d.entity.Entity;
 import game2d.entity.Player;
-import game2d.entity.player.Fox;
-import game2d.entity.player.Protogen;
 import game2d.overlay.Background;
 import game2d.overlay.HeadsUpDisplay;
 import game2d.overlay.ScreenEffects;
@@ -113,6 +111,9 @@ public class GamePanel extends JPanel implements Runnable {
         logicThread.start();
     }
 
+    public void drawRect(Rectangle s) {
+    }
+
     @Override
     public void run() {
         setupGame();
@@ -134,7 +135,6 @@ public class GamePanel extends JPanel implements Runnable {
             framerate = 1 / (delta * 1000) * 1E6 * 10;
             framerate = Math.round(framerate) / 10.0;
             lastTime = currentTime;
-
             //increase the global counter, which counts how many frames have been rendered since startup
             globalCounter++;
 
@@ -145,10 +145,10 @@ public class GamePanel extends JPanel implements Runnable {
             }
 
             //update game logic
-            update();
 
             //draw the screen
             paintScreenBuffer();
+            update();
             paintScreen();
 
             try {

@@ -1,5 +1,6 @@
 package game2d.tile;
 
+import game2d.main.Assets;
 import game2d.main.GamePanel;
 import game2d.util.ToolBox;
 
@@ -64,13 +65,7 @@ public class TileManager {
         } catch (NullPointerException e) {
             System.err.println("Missing texture \"/textures/tile" + imagePath + ".png\"!");
 
-            tile[index].image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2 = tile[index].image.createGraphics();
-            g2.setColor(Color.BLACK);
-            g2.fillRect(0, 0, 16, 16);
-            g2.setColor(Color.MAGENTA);
-            g2.fillRect(0, 0, 8, 8);
-            g2.fillRect(8, 8, 8, 8);
+            tile[index].image = Assets.MISSING_TEXTURE;
         }
     }
 

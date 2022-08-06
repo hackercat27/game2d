@@ -14,6 +14,8 @@ public class InputHandler implements KeyListener, MouseListener {
     public boolean cameraPanUp, cameraPanDown, cameraPanLeft, cameraPanRight;
     public boolean actionPressed = false;
 
+    public boolean pathFindTest = false;
+
     public boolean freeCamera, fixedCamera, playerCamera;
     GamePanel gp;
 
@@ -39,6 +41,7 @@ public class InputHandler implements KeyListener, MouseListener {
 
         if (code == KeyEvent.VK_SPACE) {
             actionPressed = true;
+            pathFindTest = true;
         }
 
         if (code == KeyEvent.VK_W) { // up
@@ -109,6 +112,10 @@ public class InputHandler implements KeyListener, MouseListener {
     @Override
     public void keyReleased(KeyEvent e) {
         int code = e.getKeyCode();
+
+        if (code == KeyEvent.VK_SPACE) {
+            pathFindTest = false;
+        }
 
         if (code == KeyEvent.VK_W) { // up
             upPressed = false;

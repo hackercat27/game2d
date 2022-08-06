@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * @version 0.0.7-alpha
+ * @version 0.0.8-alpha
  * @author hackercat
  */
 public class Main {

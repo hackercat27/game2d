@@ -103,6 +103,6 @@ public class HeadsUpDisplay extends Overlay {
         y += 25;
         g2.drawString(("Player x y: " + gp.player.worldX + " " + gp.player.worldY), x, y);
         y += 25;
-        g2.drawString(("collision udlr: " + gp.player.collisionAbove + " " + gp.player.collisionBelow + " " + gp.player.collisionLeft + " " + gp.player.collisionRight), x, y);
+        g2.drawString(("colliding: " + gp.player.colliding), x, y);
     }
 }

@@ -1,13 +1,9 @@
 package game2d.entity;
 
 import game2d.entity.object.Door;
-import game2d.main.Assets;
 import game2d.main.GamePanel;
 import game2d.main.InputHandler;
 import game2d.util.Audio;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 public abstract class Player extends Entity {
 
@@ -24,18 +20,12 @@ public abstract class Player extends Entity {
         name = "player";
 
         collisionBox = setBox(3, 6, 10, 10);
-
-        setDefaultValues();
-        getTextures();
-    }
-
-    @Override
-    public void setDefaultValues() {
         maxHealth = 20;
-        speed = 5;
-        direction = "down";
         health = maxHealth;
+        speed = 5;
     }
+
+    // UPDATING
 
     public void update() {
 
@@ -51,22 +41,36 @@ public abstract class Player extends Entity {
         else if (stamina == 0) speed = 4;
         else speed = 6;
 
-        if (inputHandler.upPressed) worldY -= speed;
-        else if (inputHandler.downPressed) worldY += speed;
-        else if (inputHandler.leftPressed) worldX -= speed;
-        else if (inputHandler.rightPressed) worldX += speed;
+        double xVelocity = 0;
+        double yVelocity = 0;
 
-        // UPDATE DIRECTION
-        if (inputHandler.upPressed) direction = "up";
-        else if (inputHandler.downPressed) direction = "down";
-        else if (inputHandler.leftPressed) direction = "left";
-        else if (inputHandler.rightPressed) direction = "right";
+        if (inputHandler.upPressed) yVelocity -= speed;
+        else if (inputHandler.downPressed) yVelocity += speed;
+        if (inputHandler.leftPressed) xVelocity -= speed;
+        else if (inputHandler.rightPressed) xVelocity += speed;
+
+        boolean updateDirection = false;
+
+        if (yVelocity != 0 && xVelocity != 0) {
+            worldX += (int) Math.round(xVelocity * 0.75);
+            worldY += (int) Math.round(yVelocity * 0.75);
+        } else {
+            worldX += xVelocity;
+            worldY += yVelocity;
+            updateDirection = true;
+        }
+        if (updateDirection) {
+            if (inputHandler.upPressed) direction = "up";
+            else if (inputHandler.downPressed) direction = "down";
+            else if (inputHandler.leftPressed) direction = "left";
+            else if (inputHandler.rightPressed) direction = "right";
+        }
 
         // ANIMATION COUNTER
         updateAnimations();
 
         // COLLISION
-        talkObject(
+        updateDialogue(
                 gp.collisionDetector.checkInteraction(this)
         );
         interactObject(
@@ -75,16 +79,7 @@ public abstract class Player extends Entity {
         gp.collisionDetector.checkTile(this);
     }
 
-    private void talkObject(int slot) {
-        if (slot != -1 && gp.inputHandler.actionPressed) {
-            talking = slot;
-            gp.currentGameState = GamePanel.DIALOGUE_STATE;
-        } else {
-            talking = -1;
-        }
-    }
-
-    private void updateAnimations() {
+    public void updateAnimations() {
         if (inputHandler.upPressed || inputHandler.downPressed || inputHandler.leftPressed || inputHandler.rightPressed) {
             animationCounter++;
         } else {
@@ -103,7 +98,7 @@ public abstract class Player extends Entity {
         }
     }
 
-    private void updateStamina() {
+    public void updateStamina() {
         if ((inputHandler.upPressed || inputHandler.downPressed ||  inputHandler.leftPressed || inputHandler.rightPressed) && inputHandler.sprintPressed) {
             stamina--;
         } else if (!(inputHandler.upPressed || inputHandler.downPressed ||  inputHandler.leftPressed || inputHandler.rightPressed)) {
@@ -117,7 +112,16 @@ public abstract class Player extends Entity {
         }
     }
 
-    private void interactObject(int slot) {
+    public void updateDialogue(int slot) {
+        if (slot != -1 && gp.inputHandler.actionPressed) {
+            talking = slot;
+            gp.currentGameState = GamePanel.DIALOGUE_STATE;
+        } else {
+            talking = -1;
+        }
+    }
+
+    public void interactObject(int slot) {
         if (slot != -1) {
             switch(gp.obj[slot].name) {
                 case "key":

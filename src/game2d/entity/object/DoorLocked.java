@@ -18,6 +18,6 @@ public class DoorLocked extends GameObject {
 
         down = new BufferedImage[1];
 
-        down[0] = setup("door_locked");
+        down[0] = setup("door/down_locked");
     }
 }

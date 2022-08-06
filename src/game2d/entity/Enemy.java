@@ -1,10 +1,7 @@
 package game2d.entity;
 
 import game2d.main.GamePanel;
-import game2d.util.Audio;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public class Enemy extends Entity{
@@ -33,32 +30,6 @@ public class Enemy extends Entity{
         right = up;
         left = up;
         down = up;
-    }
-
-    @Override
-    public void setAction() {
-        Random rand = new Random();
-        int i = rand.nextInt(100) + 1;
-
-        if (collisionAbove || collisionBelow || collisionLeft || collisionRight) {
-            actionCounter = 0;
-        }
-
-        if (actionCounter <= 0) {
-
-            if (i % 4 == 0) {
-                direction = "up";
-            } else if (i % 4 == 1) {
-                direction = "down";
-            } else if (i % 4 == 2) {
-                direction = "left";
-            } else {
-                direction = "right";
-            }
-            actionCounter = rand.nextInt(120) + 120;
-        } else {
-            actionCounter--;
-        }
     }
 
     @Override
@@ -108,26 +79,51 @@ public class Enemy extends Entity{
         }
     }
 
-    private void interactObject(int slot) {
-        if (slot != -1) {
-            switch(gp.obj[slot].name) {
-                case "key":
-                    break;
-                case "door":
-                    gp.obj[slot].open = true;
-                    gp.obj[slot].closeTimer = CLOSE_TIMER_START_VALUE;
-                    gp.playSound(Audio.DOOR_OPEN);
-                    break;
-                case "door_open":
-                    gp.obj[slot].closeTimer = CLOSE_TIMER_START_VALUE;
-                    break;
-                case "slime":
-                case "player":
-                case "door_locked":
-                case "generic":
-                    gp.collisionDetector.handleObjectCollision(this, slot);
-                    actionCounter = 0;
+    String bias = "y";
+
+    @Override
+    public void setAction() {
+        Random rand = new Random();
+        int i;
+
+        if (colliding) {
+            actionCounter = -1;
+        }
+        if (bias.equals("y") && !getDirectionToObjectBiasY(this, gp.player).equals(direction)) {
+            actionCounter = -1;
+        }
+        if (bias.equals("x") && !getDirectionToObjectBiasX(this, gp.player).equals(direction)) {
+            actionCounter = -1;
+        }
+
+        if (actionCounter <= 0) {
+
+            i = rand.nextInt(100) + 1;
+
+            if (i % 5 != 0) {
+                if (i % 2 == 0) {
+                    direction = getDirectionToObjectBiasX(this, gp.player);
+                    bias = "x";
+                } else {
+                    direction = getDirectionToObjectBiasY(this, gp.player);
+                    bias = "y";
+                }
+            } else {
+                i = rand.nextInt(100) + 1;
+
+                if (i % 4 == 0) {
+                    direction = "up";
+                } else if (i % 4 == 1) {
+                    direction = "down";
+                } else if (i % 4 == 2) {
+                    direction = "left";
+                } else {
+                    direction = "right";
+                }
             }
+            actionCounter = rand.nextInt(120) + 120;
+        } else {
+            actionCounter--;
         }
     }
 }
